@@ -1,0 +1,4 @@
+https://dev.to/devshawn/apache-kafka-docker-quick-start-3ikp
+
+Apache ZooKeeper (https://zookeeper.apache.org/) - A centralized system for storing and managing configuration
+

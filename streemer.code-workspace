@@ -1,0 +1,18 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"*.ino": "cpp",
+			"*.append": "jsonc",
+			"glib.h": "c",
+			"galloca.h": "c",
+			"gtypes.h": "c",
+			"gversionmacros.h": "c",
+			"rdkafka.h": "c"
+		}
+	}
+}
