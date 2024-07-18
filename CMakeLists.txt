@@ -22,7 +22,7 @@ list(APPEND C_INCLUDES
 
 list(APPEND C_LIBS
   ${GLIB_LDFLAGS}
-  ${RDKAFKA_LDFLAGS} 
+  ${RDKAFKA_C_LDFLAGS} 
 )
 
 # Consumer example build config
@@ -44,3 +44,12 @@ pkg_check_modules(RDKAFKA_CPP REQUIRED rdkafka++)
 list(APPEND CPP_INCLUDES
   ${RDKAFKA_CPP_INCLUDE_DIRS}
 )
+
+list(APPEND CPP_LIBS
+  ${RDKAFKA_CPP_LDFLAGS}
+)
+
+add_executable(customer_producer ${PROJECT_SOURCE_DIR}/src/customer_producer.cpp)
+target_include_directories(customer_producer PUBLIC ${CPP_INCLUDES})
+target_link_libraries(customer_producer ${CPP_LIBS})
+
