@@ -2,3 +2,9 @@ https://dev.to/devshawn/apache-kafka-docker-quick-start-3ikp
 
 Apache ZooKeeper (https://zookeeper.apache.org/) - A centralized system for storing and managing configuration
 
+Things to do:
+
+1. Start producing data:
+  - Simulate customers creating accounts
+  - Publish the data in a specific format - JSON, Protobuf, etc.
+  - Have consumer save the data into a MySQL database
