@@ -43,6 +43,7 @@ pkg_check_modules(RDKAFKA_CPP REQUIRED rdkafka++)
 
 list(APPEND CPP_INCLUDES
   ${RDKAFKA_CPP_INCLUDE_DIRS}
+  ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
 list(APPEND CPP_LIBS

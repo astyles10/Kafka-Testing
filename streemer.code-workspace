@@ -15,7 +15,9 @@
       "rdkafka.h": "c",
       "cstdlib": "cpp",
       "csignal": "cpp",
-      "iostream": "cpp"
+      "iostream": "cpp",
+      "condition_variable": "cpp",
+      "atomic": "cpp"
     }
 	}
 }

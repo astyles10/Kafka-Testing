@@ -1,10 +1,16 @@
 
 #include <csignal>
 #include <cstdlib>
+#include <fstream>
 #include <iostream>
+#include <nlohmann/json.hpp>
 #include <rdkafkacpp.h>
 
+#include "IOQueue.hpp"
+
 // Reference: https://github.com/confluentinc/librdkafka/blob/master/examples/producer.cpp
+
+using json = nlohmann::json;
 
 const static std::string gBroker = "localhost:9092";
 const static std::string gTopic = "customer";
@@ -25,6 +31,17 @@ class ExampleDeliveryReportCb : public RdKafka::DeliveryReportCb {
 static void HandleSignal(int sig) {
   (void)sig;
   gRunning = false;
+}
+
+json LoadTestDataFile(const std::string& inFileName) {
+  json aTestData;
+  try {
+    std::ifstream aTestFileStream(inFileName);
+    json aTestData = json::parse(aTestFileStream);
+  } catch (std::exception& e) {
+    std::cerr << "Failed to parse json: " << e.what() << std::endl;
+  }
+  return aTestData;
 }
 
 int main(int argc, char** argv) {
