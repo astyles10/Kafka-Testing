@@ -4,6 +4,7 @@ set(PROJECT Streemer)
 project(${PROJECT})
 
 find_package(PkgConfig REQUIRED)
+find_package(Threads REQUIRED)
 
 include_directories(
   ${PROJECT_SOURCE_DIR}/src
@@ -41,6 +42,10 @@ target_link_libraries(producer ${C_LIBS})
 
 pkg_check_modules(RDKAFKA_CPP REQUIRED rdkafka++)
 
+list(APPEND CPP_SOURCES
+  ${CMAKE_SOURCE_DIR}/src/IOQueue.cpp
+)
+
 list(APPEND CPP_INCLUDES
   ${RDKAFKA_CPP_INCLUDE_DIRS}
   ${CMAKE_CURRENT_SOURCE_DIR}/include
@@ -50,7 +55,10 @@ list(APPEND CPP_LIBS
   ${RDKAFKA_CPP_LDFLAGS}
 )
 
-add_executable(customer_producer ${PROJECT_SOURCE_DIR}/src/customer_producer.cpp)
+add_executable(customer_producer
+  ${PROJECT_SOURCE_DIR}/src/customer_producer.cpp
+  ${CPP_SOURCES}
+)
 target_include_directories(customer_producer PUBLIC ${CPP_INCLUDES})
-target_link_libraries(customer_producer ${CPP_LIBS})
+target_link_libraries(customer_producer ${CMAKE_THREAD_LIBS_INIT} ${CPP_LIBS})
 

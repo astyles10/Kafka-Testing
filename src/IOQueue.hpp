@@ -1,6 +1,13 @@
 #ifndef IO_QUEUE_HPP
 #define IO_QUEUE_HPP
 
+/* 
+  IOQueue is a pool of threads which operate on a shared queue.
+ */
+
+#include "Messages/GenericMessage.hpp"
+#include "Messages/JsonMessage.hpp"
+
 #include <atomic>
 #include <condition_variable>
 #include <functional>
@@ -10,56 +17,31 @@
 
 /* 
   TODOs:
-  - Ensure Push is thread safe
-  - Test that threads will wait for new jobs before executing
   - Add callback to publish to kafka stream
 
  */
 
-// TODO: Make this template into a generic input data class
-template<class T>
 class IOQueue {
  public:
-  IOQueue() : fRunning(false) {
-    InitThreadPool();
-  }
-  ~IOQueue() {
-  }
+  IOQueue();
+  ~IOQueue();
 
-  void Push(const T& inData) {
-    std::lock_guard<std::mutex> aLock(fReceiveMutex);
-    fUnprocessedData.push(inData);
-  }
+  void Start();
+  void Stop();
+  void Push(std::unique_ptr<GenericMessage> inData);
+  void SetDataHandler();
+
  private:
-  void ThreadMain() {
-    while (fRunning) {
-      std::unique_lock<std::mutex> aLock(fMutex);
-      fConditional.wait(aLock);
-      ProcessNextItem();
-      aLock.unlock();
-    }
-  }
-
-  void ProcessNextItem() {
-    const T& aData = fUnprocessedData.front();
-    // Run callback to publish event
-    fConditional.notify_one();
-  }
-
-  void InitThreadPool() {
-    const unsigned int aMaxThreads = std::thread::hardware_concurrency();
-    for (int i = 0; i < aMaxThreads; ++i) {
-      std::unique_ptr<std::thread> aThread = std::make_unique<std::thread>(std::bind(&ThreadMain, this));
-      fThreadPool.push_back(aThread);
-    }
-  }
+  void ThreadMain();
+  void ProcessNextItem();
+  void InitThreadPool();
 
   std::atomic_bool fRunning;
+  std::queue<std::unique_ptr<GenericMessage>> fUnprocessedData;
   std::vector<std::unique_ptr<std::thread>> fThreadPool;
-  std::mutex fReceiveMutex;
-  std::mutex fMutex;
+  mutable std::mutex fReceiveMutex;
+  mutable std::mutex fTransmitMutex;
   std::condition_variable fConditional;
-  std::queue<T> fUnprocessedData;
 };
 
 #endif

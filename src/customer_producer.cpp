@@ -7,6 +7,7 @@
 #include <rdkafkacpp.h>
 
 #include "IOQueue.hpp"
+#include "Messages/JsonMessage.hpp"
 
 // Reference: https://github.com/confluentinc/librdkafka/blob/master/examples/producer.cpp
 
@@ -45,6 +46,11 @@ json LoadTestDataFile(const std::string& inFileName) {
 }
 
 int main(int argc, char** argv) {
+  IOQueue aQueue;
+
+  std::unique_ptr<JsonMessage> aPtr = std::make_unique<JsonMessage>(JsonMessage({{"one",  1}, {"two", 2}}));
+  aQueue.Push(std::move(aPtr));
+
   RdKafka::Conf *aConfig = RdKafka::Conf::create(RdKafka::Conf::CONF_GLOBAL);
   std::string aError;
 
