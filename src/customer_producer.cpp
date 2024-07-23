@@ -54,29 +54,6 @@ int main(int argc, char** argv) {
   RdKafka::Conf *aConfig = RdKafka::Conf::create(RdKafka::Conf::CONF_GLOBAL);
   std::string aError;
 
-  if (aConfig->set("bootstrap.servers", gBroker, aError) != RdKafka::Conf::CONF_OK) {
-    std::cerr << aError << "\n";
-    exit(1);
-  }
-
-  // signal(SIGTERM, HandleSignal);
-  // signal(SIGINT, HandleSignal);
-
-  ExampleDeliveryReportCb aCallback;
-
-  if (aConfig->set("dr_cb", &aCallback, aError) != RdKafka::Conf::CONF_OK) {
-    std::cerr << aError << "\n";
-    exit(1);
-  }
-
-  RdKafka::Producer* aProducer = RdKafka::Producer::create(aConfig, aError);
-  if (!aProducer) {
-    std::cerr << aError << "\n";
-    exit(1);
-  }
-
-  delete aConfig;
-
   bool aRetry = false;
 
   for (std::string line; std::getline(std::cin, line);) {

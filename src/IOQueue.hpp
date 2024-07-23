@@ -15,11 +15,17 @@
 #include <queue>
 #include <thread>
 
-/* 
-  TODOs:
-  - Add callback to publish to kafka stream
+// class MessageHandlerCallback {
+//  public:
+//   MessageHandlerCallback(std::function<void (std::unique_ptr<GenericMessage>)>& inCallback);
+//   virtual ~MessageHandlerCallback();
+//   void operator()(std::unique_ptr<GenericMessage>);
 
- */
+//  private:
+//   std::function<void (std::unique_ptr<GenericMessage>)> fCallback;
+// };
+
+typedef std::function<void (std::unique_ptr<GenericMessage>)> MessageHandlerCallback;
 
 class IOQueue {
  public:
@@ -28,17 +34,21 @@ class IOQueue {
 
   void Start();
   void Stop();
-  void Push(std::unique_ptr<GenericMessage> inData);
-  void SetDataHandler();
+  void Push(std::unique_ptr<GenericMessage> inMessage);
+  void SetMessageHandler(MessageHandlerCallback& inCallback);
 
  private:
   void ThreadMain();
-  void ProcessNextItem();
+  void WaitForMessage();
   void InitThreadPool();
+  void ProcessNextMessage();
+  void HandleMessage(std::unique_ptr<GenericMessage> inMessage);
+
+  std::queue<std::unique_ptr<GenericMessage>> fUnprocessedMessages;
+  std::vector<std::unique_ptr<std::thread>> fThreadPool;
+  MessageHandlerCallback fMessageHandlerCallback;
 
   std::atomic_bool fRunning;
-  std::queue<std::unique_ptr<GenericMessage>> fUnprocessedData;
-  std::vector<std::unique_ptr<std::thread>> fThreadPool;
   mutable std::mutex fReceiveMutex;
   mutable std::mutex fTransmitMutex;
   std::condition_variable fConditional;

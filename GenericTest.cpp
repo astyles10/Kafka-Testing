@@ -1,3 +1,4 @@
+#include <fstream>
 #include <iostream>
 #include <nlohmann/json.hpp>
 
@@ -36,12 +37,21 @@ void PrintGeneric(Generic& inGeneric) {
   std::cout << inGeneric.Get() << std::endl;
 }
 
+void TakeInIstream(std::istream& inStream) {
+  // inStream.
+}
+
 int main(int argc, char** argv) {
   Specific aGeneric(10);
   PrintGeneric(aGeneric);
 
   JsonStream aJsonStr({{"one", 1}, {"two", 2}});
   PrintGeneric(aJsonStr);
+
+  std::string aString;
+
+  std::ifstream aFile("/etc/systemd/system/snap.lxd.daemon.service");
+  TakeInIstream(aFile);
 
   return 0;
 }
