@@ -57,3 +57,5 @@ dkms.conf
 # Docker Volumes
 data/
 build
+
+.vscode/
