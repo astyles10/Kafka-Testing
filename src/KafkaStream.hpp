@@ -2,6 +2,7 @@
 #define KAFKA_STREAM_HPP
 
 #include "IOQueue.hpp"
+#include "Streams/InputStream.hpp"
 
 #include <iostream>
 #include <rdkafkacpp.h>
@@ -20,7 +21,7 @@ class ExampleDeliveryReportCb : public RdKafka::DeliveryReportCb {
 
 class KafkaStream {
  public:
-  KafkaStream(const json& inConfig);
+  KafkaStream(const json& inConfig, InputStream& inInputStream);
   ~KafkaStream();
   void Start();
   void Stop();
@@ -30,6 +31,7 @@ class KafkaStream {
   std::unique_ptr<RdKafka::Conf> fConfig;
   ExampleDeliveryReportCb fDeliveryCallback;
   std::unique_ptr<RdKafka::Producer> fProducer;
+  InputStream& fInputStream;
   IOQueue fIoQueue;
 };
 

@@ -61,7 +61,8 @@
       "semaphore": "cpp",
       "istream": "cpp",
       "string": "cpp",
-      "fstream": "cpp"
+      "fstream": "cpp",
+      "*.ipp": "cpp"
     }
 	}
 }

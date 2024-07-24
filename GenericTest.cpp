@@ -1,3 +1,4 @@
+#include <boost/asio.hpp>
 #include <fstream>
 #include <iostream>
 #include <nlohmann/json.hpp>
@@ -21,9 +22,9 @@ class Specific : public Generic {
   int fData;
 };
 
-class JsonStream : public Generic {
+class JsonMessage : public Generic {
  public:
-  JsonStream(const nlohmann::json& inJson) {
+  JsonMessage(const nlohmann::json& inJson) {
     fData = inJson;
   }
   std::string Get() {
@@ -37,21 +38,48 @@ void PrintGeneric(Generic& inGeneric) {
   std::cout << inGeneric.Get() << std::endl;
 }
 
-void TakeInIstream(std::istream& inStream) {
-  // inStream.
+void TakeInIstream(std::basic_ios<char>& inStream) {
+  // nlohmann::json aJson;
+  // aJson.parse(inStream);
+  std::stringstream aStr;
+  aStr << inStream.rdbuf();
+  std::cout << "My string: " << aStr.str() << std::endl;
 }
 
 int main(int argc, char** argv) {
   Specific aGeneric(10);
   PrintGeneric(aGeneric);
 
-  JsonStream aJsonStr({{"one", 1}, {"two", 2}});
+  JsonMessage aJsonStr({{"one", 1}, {"two", 2}});
   PrintGeneric(aJsonStr);
 
   std::string aString;
 
-  std::ifstream aFile("/etc/systemd/system/snap.lxd.daemon.service");
+  std::ifstream aFile("txt_file.txt");
   TakeInIstream(aFile);
+
+  // std::string aLine;
+  // std::getline(std::cin, aLine);
+  // std::cout << aLine << std::endl;
+
+  TakeInIstream(std::cin);
+
+  std::stringstream aStrStr;
+  aStrStr << "my stringstream\n";
+  TakeInIstream(aStrStr);
+
+  using namespace boost::asio::ip;
+  boost::asio::io_context aIoContext;
+  tcp::endpoint aEndpoint(tcp::v4(), 4444);
+  tcp::acceptor aAcceptor(aIoContext, aEndpoint);
+  for (;;) {
+    tcp::iostream aStream;
+    boost::system::error_code aErrorCode;
+    aAcceptor.accept(aStream.socket(), aErrorCode);
+    if (!aErrorCode) {
+      TakeInIstream(aStream);
+    }
+  }
 
   return 0;
 }

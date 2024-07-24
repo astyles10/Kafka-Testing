@@ -8,3 +8,11 @@ Things to do:
   - Simulate customers creating accounts
   - Publish the data in a specific format - JSON, Protobuf, etc.
   - Have consumer save the data into a MySQL database
+
+Streams and messages
+ - InputStream takes in a std::basic_ios object which encapsulates file streams, stringstreams, boost iostreams, etc.
+ - If an input stream is going to run continually (e.g. tcp server), the class needs to be notified when new data arrives
+ - Json message stream may (optionally) need to take a callback to parse the input.
+
+   E.g. Reading the users.json file requires iteration over each object in users[]
+   if it is going to mimic a real event system

@@ -1,6 +1,6 @@
 #include "KafkaStream.hpp"
 
-KafkaStream::KafkaStream(const json& inConfig) {
+KafkaStream::KafkaStream(const json& inConfig, InputStream& inInputStream) : fInputStream(inInputStream) {
   InitialiseConfig(inConfig);
   InitialiseStream();
 }
