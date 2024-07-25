@@ -1,7 +1,8 @@
 #ifndef STREAM_DATA_HPP
 #define STREAM_DATA_HPP
 
-#include <string>
+#include <iostream>
+#include <sstream>
 
 /* 
   GenericMessage: Generic data structure.
@@ -11,9 +12,37 @@
 class GenericMessage {
  public:
   GenericMessage() = default;
+  GenericMessage(std::basic_ios<char>& inStream) {
+    Consume(inStream);
+  }
   virtual ~GenericMessage() = default;
 
-  virtual std::string Get() { return ""; }
+  void operator<<(std::istream& aStr) {
+    Consume(aStr);
+  }
+  void operator<<(std::string& aStr) {
+    std::stringstream aStream;
+    aStream << aStr;
+    Consume(aStream);
+  }
+
+  // TODO: Instead of copying data, maybe the data could be moved or passed directly to an output stream?
+  virtual GenericMessage Create(std::basic_ios<char>& inStream) {
+    Consume(inStream);
+    return *this;
+  };
+
+  virtual std::string Get() { return fData; }
+
+ protected:
+  virtual void Consume(std::basic_ios<char>& inStream) {
+    std::cout << "GenericMessage consume called\n";
+    std::stringstream aStrStr;
+    aStrStr << inStream.rdbuf();
+    fData = aStrStr.str();
+  }
+ private:
+  std::string fData;
 };
 
 #endif

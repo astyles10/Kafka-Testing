@@ -10,13 +10,23 @@ using json = nlohmann::json;
 class JsonMessage : public GenericMessage {
  public:
   JsonMessage() = default;
+  JsonMessage(std::basic_ios<char>& inStream) {
+    Consume(inStream);
+  };
   JsonMessage(const json& inJson) : fData(inJson) {};
   virtual ~JsonMessage() = default;
 
   std::string Get() {
     return fData.dump();
   }
+
  private:
+  void Consume(std::basic_ios<char>& inStream) override {
+    std::cout << "JsonMessage consume called\n";
+    std::istream aStream(inStream.rdbuf());
+    fData = json::parse(aStream, nullptr, true, true);
+  }
+
   json fData;
 };
 

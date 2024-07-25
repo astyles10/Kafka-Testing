@@ -1,19 +1,68 @@
 #ifndef INPUT_STREAM_HPP
 #define INPUT_STREAM_HPP
 
+#include "Observer.hpp"
+
+#include <cctype>
+#include <boost/asio.hpp>
+#include <functional>
 #include <istream>
 #include <string>
-#include <boost/asio.hpp>
+#include <type_traits>
 
-// TODO: Need to integrate GenericMessage type casting into Streams
+template<typename U>
+  struct is_string : public std::disjunction<
+    std::is_same<char *, std::decay_t<U>>,
+    std::is_same<const char*, std::decay_t<U>>,
+    std::is_same<std::string, std::decay_t<U>>
+  > {};
+
+template <class T = GenericMessage>
 class InputStream {
+  static_assert(std::is_base_of<GenericMessage, T>::value, "Type must derive from Generic");
  public:
-  InputStream(std::basic_ios<char>& inIoStream);
-  virtual ~InputStream();
- protected:
-  std::basic_ios<char>& fIoStream;
+  InputStream() = default;
+  // ~InputStream() = default;
+  ~InputStream() {
+    std::cout << "InputStream destructor called\n";
+  }
+
+  template <typename U>
+
+  // TODO: this works but only works at compile time.
+  void operator<<(U& inString) {
+    static_assert(is_string<decltype(inString)>::value, "Type must be a string or string literal");
+    std::cout << " Operator <<: " << inString << std::endl;
+  }
+
+  // void operator<<(typename std::enable_if<is_string<U>::value>::type) {
+    // static_assert(is_string<decltype(inString)>::value, "Type must be a string or string literal");
+    // std::cout << " Operator <<: " << inString << std::endl;
+  // }
+
+  void Commit(T& inMessage) {
+    NotifyObservers(inMessage);
+  }
+
+  void Commit(std::basic_ios<char>& inStream) {
+    T aMessage(inStream);
+    NotifyObservers(aMessage);
+  }
+
+  void NotifyObservers(T& inMessage) {
+    for (auto aObserver : fObservers) {
+      if (auto aPtr = aObserver.lock()) {
+        aPtr->Notify(inMessage);
+      }
+    }
+  }
+
+  void PushObserver(std::shared_ptr<Observer> inObserver) {
+    fObservers.push_back(inObserver);
+  }
+
  private:
-  virtual void Consume();
+  std::vector< std::weak_ptr<Observer> > fObservers;
 };
 
 #endif

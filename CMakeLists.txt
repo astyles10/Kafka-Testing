@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.20)
 
 set(PROJECT Streemer)
+
+set (CMAKE_CXX_STANDARD 17)
+
 project(${PROJECT})
 
 find_package(PkgConfig REQUIRED)
@@ -45,7 +48,6 @@ pkg_check_modules(RDKAFKA_CPP REQUIRED rdkafka++)
 list(APPEND CPP_SOURCES
   ${CMAKE_SOURCE_DIR}/src/IOQueue.cpp
   ${CMAKE_SOURCE_DIR}/src/KafkaStream.cpp
-  ${CMAKE_SOURCE_DIR}/src/Streams/InputStream.cpp
 )
 
 list(APPEND CPP_INCLUDES
@@ -58,7 +60,7 @@ list(APPEND CPP_LIBS
 )
 
 add_executable(customer_producer
-  ${PROJECT_SOURCE_DIR}/src/customer_producer.cpp
+  ${PROJECT_SOURCE_DIR}/src/TestMain.cpp
   ${CPP_SOURCES}
 )
 target_include_directories(customer_producer PUBLIC ${CPP_INCLUDES})

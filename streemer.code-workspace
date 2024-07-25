@@ -62,7 +62,17 @@
       "istream": "cpp",
       "string": "cpp",
       "fstream": "cpp",
-      "*.ipp": "cpp"
+      "*.ipp": "cpp",
+      "strstream": "cpp",
+      "bitset": "cpp",
+      "string_view": "cpp",
+      "random": "cpp",
+      "iomanip": "cpp",
+      "ranges": "cpp",
+      "streambuf": "cpp",
+      "system_error": "cpp",
+      "variant": "cpp",
+      "numeric": "cpp"
     }
 	}
 }

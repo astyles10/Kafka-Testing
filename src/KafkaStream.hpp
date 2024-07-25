@@ -21,7 +21,7 @@ class ExampleDeliveryReportCb : public RdKafka::DeliveryReportCb {
 
 class KafkaStream {
  public:
-  KafkaStream(const json& inConfig, InputStream& inInputStream);
+  KafkaStream(const json& inConfig, InputStream<GenericMessage>& inInputStream);
   ~KafkaStream();
   void Start();
   void Stop();
@@ -31,7 +31,7 @@ class KafkaStream {
   std::unique_ptr<RdKafka::Conf> fConfig;
   ExampleDeliveryReportCb fDeliveryCallback;
   std::unique_ptr<RdKafka::Producer> fProducer;
-  InputStream& fInputStream;
+  InputStream<GenericMessage>& fInputStream;
   IOQueue fIoQueue;
 };
 
