@@ -5,6 +5,7 @@
 #include <fstream>
 #include <iostream>
 #include <memory>
+#include <type_traits>
 
 template <class T = GenericMessage>
 class DataConsumer : public Observer {
@@ -24,6 +25,20 @@ class DataConsumer : public Observer {
   InputStream<T>& fInputStream;
 };
 
+class TestInputs {
+ public:
+  TestInputs() = default;
+  ~TestInputs() = default;
+
+  // template<class TestInputs, class T, typename std::enable_if<std::is_integral<T>::value, void>::type>
+  // template <typename T = typename std::enable_if<std::is_integral<int>::value>::type>
+  // typename std::enable_if<std::is_integral<T>::value, void>::type
+  // void operator<<(T& inValue) {
+  //   std::cout << __FUNCTION__ << ": Operator got " << inValue << std::endl;
+  // }
+ private:
+};
+
 int main(int argc, char **argv) {
   InputStream aGenericStream;
   auto aConsumer = std::make_shared<DataConsumer<GenericMessage>>("Generic Stream", aGenericStream);
@@ -32,8 +47,10 @@ int main(int argc, char **argv) {
   std::string aString = "My <<'d message\n";
   aMessage << aString;
   std::cout << aMessage.Get();
-
   aGenericStream << "into the generic stream we go\n";
+
+  TestInputs aTestInput;
+  // aTestInput << int(100);
   // aGenericStream << aString;
 
   // aGenericStream.Commit(std::cin);

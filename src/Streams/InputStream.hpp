@@ -27,17 +27,16 @@ class InputStream {
     std::cout << "InputStream destructor called\n";
   }
 
+  // TODO: this works but only checks at compile time.
   template <typename U>
-
-  // TODO: this works but only works at compile time.
   void operator<<(U& inString) {
     static_assert(is_string<decltype(inString)>::value, "Type must be a string or string literal");
     std::cout << " Operator <<: " << inString << std::endl;
   }
 
-  // void operator<<(typename std::enable_if<is_string<U>::value>::type) {
-    // static_assert(is_string<decltype(inString)>::value, "Type must be a string or string literal");
-    // std::cout << " Operator <<: " << inString << std::endl;
+  // template <class U, typename std::enable_if_t<std::is_arithmetic<U>::value>* = nullptr>
+  // void operator<<(U& inValue) {
+  //   std::cout << " Operator <<: " << inValue << std::endl;
   // }
 
   void Commit(T& inMessage) {
