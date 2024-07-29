@@ -16,7 +16,7 @@ class JsonMessage : public GenericMessage {
   JsonMessage(const json& inJson) : fData(inJson) {};
   virtual ~JsonMessage() = default;
 
-  std::string Get() {
+  const std::string Get() const override {
     return fData.dump();
   }
 

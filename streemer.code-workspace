@@ -72,7 +72,14 @@
       "streambuf": "cpp",
       "system_error": "cpp",
       "variant": "cpp",
-      "numeric": "cpp"
+      "numeric": "cpp",
+      "any": "cpp",
+      "optional": "cpp",
+      "algorithm": "cpp",
+      "future": "cpp",
+      "valarray": "cpp",
+      "forward_list": "cpp",
+      "list": "cpp"
     }
 	}
 }

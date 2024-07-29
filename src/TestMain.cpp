@@ -13,10 +13,9 @@ class DataConsumer : public Observer {
   DataConsumer(const std::string& inName, InputStream<T>& inStream) : fInputStream(inStream) {
   }
   ~DataConsumer() {
-    std::cout << "Consumer destructor called\n";
   }
 
-  void Notify(GenericMessage& inMessage) {
+  void Notify(const GenericMessage& inMessage) {
     std::cout << fName << " got message: " << inMessage.Get() << std::endl;
   }
 
@@ -30,30 +29,45 @@ class TestInputs {
   TestInputs() = default;
   ~TestInputs() = default;
 
-  // template<class TestInputs, class T, typename std::enable_if<std::is_integral<T>::value, void>::type>
-  // template <typename T = typename std::enable_if<std::is_integral<int>::value>::type>
-  // typename std::enable_if<std::is_integral<T>::value, void>::type
-  // void operator<<(T& inValue) {
-  //   std::cout << __FUNCTION__ << ": Operator got " << inValue << std::endl;
-  // }
+  // The = 0 is a default template parameter based on the class of the 2nd parameter
+  template <typename X, typename std::enable_if<std::numeric_limits<X>::is_integer, int>::type = 0>
+  // typename std::enable_if<std::numeric_limits<X>::is_integer, int>::type
+  X operator<<(const X& inValue) {
+    std::cout << "operator << got value " << inValue << " with type: " << typeid(inValue).name() << std::endl;
+    return inValue;
+  }
+
  private:
 };
 
 int main(int argc, char **argv) {
+  // The << operator requires an integer type as input:
+  uint16_t aVal = 65000;
+
+  // The operator function returns the type of the second argument to std::enable_if_t (int in this case):
+  // --> typename std::enable_if<std::numeric_limits<X>::is_integer, int>::type
+  // So if we don't care about a return type, it should be set to void in the enable_if template declaration.
+  TestInputs aTestOperator;
+  auto aShouldBeInt = (aTestOperator << aVal);
+  std::cout << "aShouldBeInt type = " << typeid(aShouldBeInt).name() << std::endl;
+
+  std::enable_if<true, double>::type aCastToDouble = (aTestOperator << aVal);
+  std::cout << "aCastToDouble Type = " << typeid(aCastToDouble).name() << std::endl;
+
   InputStream aGenericStream;
   auto aConsumer = std::make_shared<DataConsumer<GenericMessage>>("Generic Stream", aGenericStream);
   aGenericStream.PushObserver(aConsumer);
+
+  // The problem originally was that the << overload definition was trying to return two types:
+  // void and enable_if::type
+  std::string aString = "std::string input\n";
+  aGenericStream << aString;
+  aGenericStream << "string literal input!\n";
+
   GenericMessage aMessage;
-  std::string aString = "My <<'d message\n";
-  aMessage << aString;
-  std::cout << aMessage.Get();
-  aGenericStream << "into the generic stream we go\n";
-
-  TestInputs aTestInput;
-  // aTestInput << int(100);
-  // aGenericStream << aString;
-
-  // aGenericStream.Commit(std::cin);
+  const std::string aStringIntoMessage = "generic message string\n";
+  aMessage << aStringIntoMessage;
+  aGenericStream << aMessage;
 
   /*
     Potential issue with shared pointers and circular referencing
@@ -71,6 +85,7 @@ int main(int argc, char **argv) {
   std::ifstream aFile("test.json");
   aJsonStream.PushObserver(aJsonConsumer);
   aJsonStream.Commit(aFile);
+  aJsonStream << "{\"testJson\": true}";
 
   return 0;
 }

@@ -20,7 +20,8 @@ class GenericMessage {
   void operator<<(std::istream& aStr) {
     Consume(aStr);
   }
-  void operator<<(std::string& aStr) {
+
+  void operator<<(const std::string& aStr) {
     std::stringstream aStream;
     aStream << aStr;
     Consume(aStream);
@@ -32,11 +33,10 @@ class GenericMessage {
     return *this;
   };
 
-  virtual std::string Get() { return fData; }
+  virtual const std::string Get() const { return fData; }
 
  protected:
   virtual void Consume(std::basic_ios<char>& inStream) {
-    std::cout << "GenericMessage consume called\n";
     std::stringstream aStrStr;
     aStrStr << inStream.rdbuf();
     fData = aStrStr.str();

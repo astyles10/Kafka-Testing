@@ -7,7 +7,7 @@ class Observer {
  public:
   Observer() = default;
   ~Observer() = default;
-  virtual void Notify(GenericMessage& inMessage) = 0;
+  virtual void Notify(const GenericMessage& inMessage) = 0;
 };
 
 #endif
