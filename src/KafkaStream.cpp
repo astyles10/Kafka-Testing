@@ -1,6 +1,6 @@
 #include "KafkaStream.hpp"
 
-KafkaStream::KafkaStream(const json& inConfig, InputStream<GenericMessage>& inInputStream) : fInputStream(inInputStream) {
+KafkaStream::KafkaStream(const json& inConfig)  {
   InitialiseConfig(inConfig);
   InitialiseStream();
 }
@@ -10,12 +10,15 @@ KafkaStream::~KafkaStream() {
 }
 
 void KafkaStream::Start() {
-  // This should start a message stream
-  fIoQueue.Start();
+
 }
 
 void KafkaStream::Stop() {
-  fIoQueue.Stop();
+
+}
+
+void KafkaStream::Notify(const GenericMessage& inMessage) {
+  // TODO: Publish to kafka here
 }
 
 void KafkaStream::InitialiseConfig(const json& inConfig) {

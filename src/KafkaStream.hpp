@@ -1,11 +1,14 @@
 #ifndef KAFKA_STREAM_HPP
 #define KAFKA_STREAM_HPP
 
-#include "IOQueue.hpp"
+#include "Observer.hpp"
 #include "Streams/InputStream.hpp"
 
 #include <iostream>
+#include <nlohmann/json.hpp>
 #include <rdkafkacpp.h>
+
+using json = nlohmann::json;
 
 // TODO: Do something with this
 class ExampleDeliveryReportCb : public RdKafka::DeliveryReportCb {
@@ -19,20 +22,22 @@ class ExampleDeliveryReportCb : public RdKafka::DeliveryReportCb {
   }
 };
 
-class KafkaStream {
+class KafkaStream : public Observer {
  public:
-  KafkaStream(const json& inConfig, InputStream<GenericMessage>& inInputStream);
+  KafkaStream(const json& inConfig);
   ~KafkaStream();
   void Start();
   void Stop();
+
+  void Notify(const GenericMessage& inMessage) override;
+
  private:
   void InitialiseConfig(const json& inConfig);
   void InitialiseStream();
+
   std::unique_ptr<RdKafka::Conf> fConfig;
   ExampleDeliveryReportCb fDeliveryCallback;
   std::unique_ptr<RdKafka::Producer> fProducer;
-  InputStream<GenericMessage>& fInputStream;
-  IOQueue fIoQueue;
 };
 
 #endif

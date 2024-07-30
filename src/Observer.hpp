@@ -7,6 +7,7 @@ class Observer {
  public:
   Observer() = default;
   ~Observer() = default;
+  // TODO: Make this an async call
   virtual void Notify(const GenericMessage& inMessage) = 0;
 };
 

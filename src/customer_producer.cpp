@@ -8,6 +8,7 @@
 
 #include "IOQueue.hpp"
 #include "Messages/JsonMessage.hpp"
+#include "KafkaStream.hpp"
 
 // Reference: https://github.com/confluentinc/librdkafka/blob/master/examples/producer.cpp
 
@@ -53,6 +54,11 @@ int main(int argc, char** argv) {
 
   RdKafka::Conf *aConfig = RdKafka::Conf::create(RdKafka::Conf::CONF_GLOBAL);
   std::string aError;
+
+  const json aConfigFile = LoadTestDataFile("./config.json");
+  std::shared_ptr<InputStream<JsonMessage>> aStreamPtr = std::make_shared<InputStream<JsonMessage>>();
+  std::shared_ptr<KafkaStream> aKafkaStream = std::make_shared<KafkaStream>(aConfigFile);
+  aStreamPtr->PushObserver(aKafkaStream);
 
   bool aRetry = false;
 
