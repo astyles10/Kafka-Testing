@@ -47,6 +47,7 @@ json LoadTestDataFile(const std::string& inFileName) {
 }
 
 int main(int argc, char** argv) {
+  // TODO: Implement command line parameters to initialise a stream
   IOQueue aQueue;
 
   std::unique_ptr<JsonMessage> aPtr = std::make_unique<JsonMessage>(JsonMessage({{"one",  1}, {"two", 2}}));
