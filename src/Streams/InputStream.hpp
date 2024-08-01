@@ -49,9 +49,10 @@ class InputStream {
   }
 
   void NotifyObservers(const Message& inMessage) {
+    std::shared_ptr<Message> aMessagePtr = std::make_shared<Message>(inMessage);
     for (auto aObserver : fObservers) {
       if (auto aPtr = aObserver.lock()) {
-        aPtr->Notify(inMessage);
+        aPtr->Notify(aMessagePtr);
       }
     }
   }

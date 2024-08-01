@@ -6,15 +6,16 @@
 
 #include <iostream>
 #include <nlohmann/json.hpp>
+#include <queue>
 #include <rdkafkacpp.h>
 
 using json = nlohmann::json;
 
 struct KafkaStreamConfig {
   KafkaStreamConfig(const json& inConfig) {
-    fServerAddress = inConfig.value<std::string>("/kafka/serverAddress"_json_pointer, "");
-    fPort = inConfig.value<uint16_t>("/kafka/port"_json_pointer, 0);
-    fTopic = inConfig.value<std::string>("/kafka/topic"_json_pointer, "");
+    fServerAddress = inConfig.at("/kafka/serverAddress"_json_pointer).get<std::string>();
+    fPort = inConfig.at("/kafka/port"_json_pointer).get<uint16_t>();
+    fTopic = inConfig.at("/kafka/topic"_json_pointer).get<std::string>();
   }
   ~KafkaStreamConfig() = default;
   std::string fServerAddress;
@@ -38,19 +39,26 @@ class KafkaStream : public Observer {
  public:
   KafkaStream(const json& inConfig);
   ~KafkaStream();
-  bool Start();
-  void Stop();
 
-  void Notify(const GenericMessage& inMessage) override;
+  void Notify(std::shared_ptr<GenericMessage> inMessage) override;
 
  private:
-  bool InitialiseConfig();
-  bool InitialiseStream();
+  void ProducerLoop();
+  void ProduceToStream();
+  void HandleProduceErrorCode(const RdKafka::ErrorCode& inErrorCode) const;
+  void HandleRetry(const RdKafka::ErrorCode& inErrorCode);
+  bool DetermineIfRetryProduce(const RdKafka::ErrorCode& inErrorCode) const;
+  void FlushMessageQueue();
+  void InitialiseConfig(const json& inConfig);
+  void InitialiseProducer();
 
-  const json fConfigFile;
-  std::unique_ptr<RdKafka::Conf> fConfig;
+  std::atomic_int32_t fPollTimeoutMs;
+  std::unique_ptr<std::thread> fPollThread;
+  std::queue<std::shared_ptr<GenericMessage>> fMessageBacklog;
+  std::unique_ptr<RdKafka::Conf> fKafkaConfig;
   ExampleDeliveryReportCb fDeliveryCallback;
   std::unique_ptr<RdKafka::Producer> fProducer;
+  std::string fTopic;
 };
 
 #endif

@@ -32,10 +32,11 @@ list(APPEND CPP_LIBS
   ${RDKAFKA_CPP_LDFLAGS}
 )
 
-add_executable(customer_producer
-  ${PROJECT_SOURCE_DIR}/src/TestMain.cpp
+add_executable(producer
+  ${PROJECT_SOURCE_DIR}/src/main.cpp
   ${CPP_SOURCES}
 )
-target_include_directories(customer_producer PUBLIC ${CPP_INCLUDES})
-target_link_libraries(customer_producer ${CMAKE_THREAD_LIBS_INIT} ${CPP_LIBS})
+target_include_directories(producer PUBLIC ${CPP_INCLUDES})
+target_link_libraries(producer ${CMAKE_THREAD_LIBS_INIT} ${CPP_LIBS})
 
+target_compile_options(producer PUBLIC "-g3")

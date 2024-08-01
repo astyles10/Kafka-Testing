@@ -15,8 +15,8 @@ class DataConsumer : public Observer {
   ~DataConsumer() {
   }
 
-  void Notify(const GenericMessage& inMessage) {
-    std::cout << fName << " got message: " << inMessage.Get() << std::endl;
+  void Notify(std::shared_ptr<GenericMessage> inMessage) override {
+    std::cout << fName << " got message: " << inMessage->Get() << std::endl;
   }
 
  private:
