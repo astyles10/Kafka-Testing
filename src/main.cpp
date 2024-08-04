@@ -25,7 +25,7 @@ int main(int argc, char** argv) {
   try {
     const json aConfigFile = LoadTestDataFile("./config.json");
     std::cout << "Read config file " << aConfigFile.dump() << std::endl;
-    KafkaStreamConfig aKafkaConfig(aConfigFile);
+    KafkaProducerConfig aKafkaConfig(aConfigFile);
   } catch (std::exception& e) {
     std::cerr << "Failed to read config: " << e.what() << std::endl;
   }

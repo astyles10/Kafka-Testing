@@ -11,13 +11,48 @@
 
 using json = nlohmann::json;
 
-struct KafkaStreamConfig {
-  KafkaStreamConfig(const json& inConfig) {
+class KafkaProducerConfig {
+ public:
+  KafkaProducerConfig(const json& inConfig, std::shared_ptr<RdKafka::DeliveryReportCb> inReportCallback) : fDeliveryReportCallback(inReportCallback) {
+    DetermineSettings(inConfig);
+    InitialiseConfig();
+  }
+  ~KafkaProducerConfig() = default;
+
+  // TODO: If multiple streams are open this needs to be a shared pointer
+  std::unique_ptr<RdKafka::Conf> GetConfig() {
+    return std::move(fKafkaConfig);
+  }
+ private:
+  void DetermineSettings(const json& inConfig) {
     fServerAddress = inConfig.at("/kafka/serverAddress"_json_pointer).get<std::string>();
     fPort = inConfig.at("/kafka/port"_json_pointer).get<uint16_t>();
     fTopic = inConfig.at("/kafka/topic"_json_pointer).get<std::string>();
   }
-  ~KafkaStreamConfig() = default;
+  void InitialiseConfig() {
+    fKafkaConfig = std::unique_ptr<RdKafka::Conf>(RdKafka::Conf::create(RdKafka::Conf::CONF_GLOBAL));
+    SetServerAddress();
+    SetCallback();
+  }
+
+  void SetServerAddress() {
+    std::string aError;
+    if (fKafkaConfig->set("bootstrap.servers", fServerAddress, aError) != RdKafka::Conf::CONF_OK) {
+      aError = "Failed to set config: " + aError;
+      throw std::runtime_error(aError);
+    }
+  }
+
+  void SetCallback() {
+    std::string aError;
+    if (fKafkaConfig->set("dr_cb", fDeliveryReportCallback.get(), aError) != RdKafka::Conf::CONF_OK) {
+      std::cerr << aError << "\n";
+      throw std::runtime_error(aError);
+    }
+  }
+
+  std::unique_ptr<RdKafka::Conf> fKafkaConfig;
+  std::shared_ptr<RdKafka::DeliveryReportCb> fDeliveryReportCallback;
   std::string fServerAddress;
   uint16_t fPort;
   std::string fTopic;

@@ -3,7 +3,6 @@
 KafkaStream::KafkaStream(const json& inConfig) : fPollTimeoutMs(0) {
   InitialiseConfig(inConfig);
   InitialiseProducer();
-  
 }
 
 KafkaStream::~KafkaStream() {
@@ -68,17 +67,7 @@ bool KafkaStream::DetermineIfRetryProduce(const RdKafka::ErrorCode& inErrorCode)
 }
 
 void KafkaStream::InitialiseConfig(const json& inConfig) {
-  fKafkaConfig = std::unique_ptr<RdKafka::Conf>(RdKafka::Conf::create(RdKafka::Conf::CONF_GLOBAL));
-  std::string aError;
-  if (fKafkaConfig->set("bootstrap.servers", inConfig.value<std::string>("/kafka/server"_json_pointer, ""), aError) != RdKafka::Conf::CONF_OK) {
-    aError = "Failed to set config: " + aError;
-    throw std::runtime_error(aError);
-  }
 
-  if (fKafkaConfig->set("dr_cb", &fDeliveryCallback, aError) != RdKafka::Conf::CONF_OK) {
-    std::cerr << aError << "\n";
-    throw std::runtime_error(aError);
-  }
 }
 
 void KafkaStream::InitialiseProducer() {
