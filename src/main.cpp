@@ -9,6 +9,7 @@
 #include "IOQueue.hpp"
 #include "Messages/JsonMessage.hpp"
 #include "KafkaStream.hpp"
+#include "Kafka/BasicDeliveryReportCallback.hpp"
 
 // Reference: https://github.com/confluentinc/librdkafka/blob/master/examples/producer.cpp
 
@@ -25,7 +26,9 @@ int main(int argc, char** argv) {
   try {
     const json aConfigFile = LoadTestDataFile("./config.json");
     std::cout << "Read config file " << aConfigFile.dump() << std::endl;
-    KafkaProducerConfig aKafkaConfig(aConfigFile);
+    std::shared_ptr<BasicDeliveryReportCb> aCallbackPtr = std::make_shared<BasicDeliveryReportCb>(BasicDeliveryReportCb());
+    KafkaProducerConfig aKafkaConfig(aConfigFile, aCallbackPtr);
+    KafkaStream aStream(aKafkaConfig);
   } catch (std::exception& e) {
     std::cerr << "Failed to read config: " << e.what() << std::endl;
   }

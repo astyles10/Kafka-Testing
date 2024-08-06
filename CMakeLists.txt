@@ -21,6 +21,7 @@ pkg_check_modules(RDKAFKA_CPP REQUIRED rdkafka++)
 list(APPEND CPP_SOURCES
   ${CMAKE_SOURCE_DIR}/src/IOQueue.cpp
   ${CMAKE_SOURCE_DIR}/src/KafkaStream.cpp
+  ${CMAKE_SOURCE_DIR}/src/Kafka/KafkaProducerConfig.cpp
 )
 
 list(APPEND CPP_INCLUDES

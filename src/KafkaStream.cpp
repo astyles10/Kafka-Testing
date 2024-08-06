@@ -1,7 +1,6 @@
 #include "KafkaStream.hpp"
 
-KafkaStream::KafkaStream(const json& inConfig) : fPollTimeoutMs(0) {
-  InitialiseConfig(inConfig);
+KafkaStream::KafkaStream(KafkaProducerConfig& inConfig) : fPollTimeoutMs(0) {
   InitialiseProducer();
 }
 
@@ -31,7 +30,7 @@ void KafkaStream::ProduceToStream() {
   // What about Key, timestamp, messageHeaders etc?
   // What is the purpose of an 'opaque value'
   RdKafka::ErrorCode aErrorCode = fProducer->produce(
-    "topic",
+    fKafkaConfig->GetTopic(),
     RdKafka::Topic::PARTITION_UA, // Use default partition, is this desired?
     RdKafka::Producer::RK_MSG_COPY,
     const_cast<char*>(aMessagePtr->Get().c_str()),
@@ -66,13 +65,10 @@ bool KafkaStream::DetermineIfRetryProduce(const RdKafka::ErrorCode& inErrorCode)
   return (inErrorCode == RdKafka::ERR__QUEUE_FULL);
 }
 
-void KafkaStream::InitialiseConfig(const json& inConfig) {
-
-}
-
 void KafkaStream::InitialiseProducer() {
   std::string aError;
-  fProducer = std::unique_ptr<RdKafka::Producer>(RdKafka::Producer::create(fKafkaConfig.get(), aError));
+  std::unique_ptr<RdKafka::Conf> aConfig = fKafkaConfig->ConsumeConfig();
+  fProducer = std::unique_ptr<RdKafka::Producer>(RdKafka::Producer::create(aConfig.get(), aError));
   if (!fProducer) {
     throw std::runtime_error(aError);
   }
