@@ -5,6 +5,7 @@
 #include <iostream>
 #include <nlohmann/json.hpp>
 #include <rdkafkacpp.h>
+#include <unistd.h>
 
 #include "IOQueue.hpp"
 #include "Messages/JsonMessage.hpp"
@@ -13,7 +14,63 @@
 
 // Reference: https://github.com/confluentinc/librdkafka/blob/master/examples/producer.cpp
 
-using json = nlohmann::json;
+std::atomic_bool gStreamRunning = false;
+int32_t gMessageThrottleMs = 100;
+
+std::shared_ptr<BasicDeliveryReportCb> gCallbackPtr;
+std::shared_ptr<KafkaProducerConfig> gKafkaConfig;
+std::shared_ptr<KafkaStream> gKafkaStream;
+
+std::shared_ptr<InputStream<JsonMessage>> gUserDataStream;
+json gUserData;
+
+void InitialiseSignals();
+void InitialiseKafka();
+void InitialiseInputStream();
+json LoadTestDataFile(const std::string& inFileName);
+void StreamTestDataToKafka();
+void HandleSignal(int inSignal);
+
+int main(int argc, char** argv) {
+  // TODO: Implement command line parameters to initialise a stream
+  // See boost program options
+
+  InitialiseSignals();
+  // Obviously these try catches littering the main function are not nice to look at,
+  // Move them into their own functions
+  try {
+    InitialiseKafka();
+  } catch (std::exception& e) {
+    std::cerr << "Failed to initialise kafka: " << e.what() << std::endl;
+  }
+
+  try {
+    InitialiseInputStream();
+  } catch (std::exception& e) {
+    std::cerr << "Failed to initialise input stream: " << e.what() << "\n";
+  }
+
+  StreamTestDataToKafka();
+  while (gStreamRunning) {
+
+  }
+  std::cout << "Program complete\n";
+  return 0;
+}
+
+void InitialiseKafka() {
+  const json aConfigFile = LoadTestDataFile("./config.json");
+  gCallbackPtr = std::make_shared<BasicDeliveryReportCb>(BasicDeliveryReportCb());
+  gKafkaConfig = std::make_shared<KafkaProducerConfig>(aConfigFile, gCallbackPtr);
+  gKafkaStream = std::make_shared<KafkaStream>(gKafkaConfig);
+  gStreamRunning = true;
+}
+
+void InitialiseInputStream() {
+  gUserDataStream = std::make_shared<InputStream<JsonMessage>>();
+  gUserDataStream->PushObserver(gKafkaStream);
+  gUserData = LoadTestDataFile("./users.json");
+}
 
 json LoadTestDataFile(const std::string& inFileName) {
   json aTestData;
@@ -21,20 +78,23 @@ json LoadTestDataFile(const std::string& inFileName) {
   return json::parse(aTestFileStream);
 }
 
-int main(int argc, char** argv) {
-  // TODO: Implement command line parameters to initialise a stream
-  try {
-    const json aConfigFile = LoadTestDataFile("./config.json");
-    std::cout << "Read config file " << aConfigFile.dump() << std::endl;
-    std::shared_ptr<BasicDeliveryReportCb> aCallbackPtr = std::make_shared<BasicDeliveryReportCb>(BasicDeliveryReportCb());
-    KafkaProducerConfig aKafkaConfig(aConfigFile, aCallbackPtr);
-    KafkaStream aStream(aKafkaConfig);
-  } catch (std::exception& e) {
-    std::cerr << "Failed to read config: " << e.what() << std::endl;
+void StreamTestDataToKafka() {
+  const json& aUsers = gUserData["/users"_json_pointer];
+  const std::size_t aNumberOfUsers = aUsers.size();
+  std::size_t aUserIndex = 0;
+  while (aUserIndex < 5) {
+    const json& aUser = aUsers.at(aUserIndex);
+    JsonMessage aMessage(aUser);
+    gUserDataStream->Commit(aMessage);
+    ++aUserIndex;
   }
-  // std::shared_ptr<InputStream<JsonMessage>> aStreamPtr = std::make_shared<InputStream<JsonMessage>>();
-  // std::shared_ptr<KafkaStream> aKafkaStream = std::make_shared<KafkaStream>(aConfigFile);
-  // aStreamPtr->PushObserver(aKafkaStream);
+}
 
-  return 0;
+void InitialiseSignals() {
+  signal(SIGINT, HandleSignal);
+  signal(SIGTERM, HandleSignal);
+}
+
+void HandleSignal(int inSignal) {
+  gStreamRunning = false;
 }

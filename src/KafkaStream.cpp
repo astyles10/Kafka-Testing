@@ -1,14 +1,24 @@
 #include "KafkaStream.hpp"
 
-KafkaStream::KafkaStream(KafkaProducerConfig& inConfig) : fPollTimeoutMs(0) {
+KafkaStream::KafkaStream(std::shared_ptr<KafkaProducerConfig> inConfig) : fRunning(false), fKafkaConfig(inConfig), fPollTimeoutMs(0) {
   InitialiseProducer();
+  InitialiseProducerThread();
 }
 
 KafkaStream::~KafkaStream() {
-  FlushMessageQueue();
+  CeaseProducerThread();
 }
 
-void KafkaStream::FlushMessageQueue() {
+void KafkaStream::CeaseProducerThread() {
+  FlushProducerQueue();
+  fRunning = false;
+  // TODO: Determine if there's any other tasks needed to clean up the producer/thread
+  if (fProducerThread->joinable()) {
+    fProducerThread->join();
+  }
+}
+
+void KafkaStream::FlushProducerQueue() {
   fProducer->flush(10 * 1000);
   if (fProducer->outq_len() > 0) {
     std::cerr << "% " << fProducer->outq_len() << " messages were not delivered" << std::endl;
@@ -20,14 +30,22 @@ void KafkaStream::Notify(const std::shared_ptr<GenericMessage> inMessage) {
 }
 
 void KafkaStream::ProducerLoop() {
-  fProducer->poll(fPollTimeoutMs);
-  ProduceToStream();
+  while (fRunning) {
+    fProducer->poll(fPollTimeoutMs);
+    ProcessMessageBacklog();
+  }
 }
 
-void KafkaStream::ProduceToStream() {
+void KafkaStream::ProcessMessageBacklog() {
+  if (fMessageBacklog.size() > 0) {
+    ProduceMessage();
+  }
+}
+
+void KafkaStream::ProduceMessage() {
   std::shared_ptr<GenericMessage> aMessagePtr = fMessageBacklog.front();
-  // TODO: Should a KafkaConfig struct be made with members topic, server, port, etc?
-  // What about Key, timestamp, messageHeaders etc?
+  std::cout << "Producing message: " << aMessagePtr->Get() << std::endl;
+  // TODO: Find out what else should be included in a kafka config
   // What is the purpose of an 'opaque value'
   RdKafka::ErrorCode aErrorCode = fProducer->produce(
     fKafkaConfig->GetTopic(),
@@ -62,14 +80,27 @@ void KafkaStream::HandleRetry(const RdKafka::ErrorCode& inErrorCode) {
 }
 
 bool KafkaStream::DetermineIfRetryProduce(const RdKafka::ErrorCode& inErrorCode) const {
-  return (inErrorCode == RdKafka::ERR__QUEUE_FULL);
+  bool aShouldRetry = false;
+  switch (inErrorCode) {
+    case RdKafka::ERR__QUEUE_FULL:
+    case RdKafka::ERR_NETWORK_EXCEPTION:
+    case RdKafka::ERR_BROKER_NOT_AVAILABLE:
+      aShouldRetry = true;
+    default:
+      aShouldRetry = false;
+  }
+  return aShouldRetry;
 }
 
 void KafkaStream::InitialiseProducer() {
   std::string aError;
-  std::unique_ptr<RdKafka::Conf> aConfig = fKafkaConfig->ConsumeConfig();
-  fProducer = std::unique_ptr<RdKafka::Producer>(RdKafka::Producer::create(aConfig.get(), aError));
+  fProducer = std::unique_ptr<RdKafka::Producer>(RdKafka::Producer::create(fKafkaConfig->ConsumeConfig(), aError));
   if (!fProducer) {
     throw std::runtime_error(aError);
   }
+}
+
+void KafkaStream::InitialiseProducerThread() {
+  fRunning = true;
+  fProducerThread = std::make_unique<std::thread>(std::bind(&KafkaStream::ProducerLoop, this));
 }

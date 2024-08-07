@@ -10,20 +10,21 @@ using json = nlohmann::json;
 class KafkaProducerConfig {
  public:
   KafkaProducerConfig(const json& inConfig, std::shared_ptr<RdKafka::DeliveryReportCb> inDeliveryReportCallback);
-  ~KafkaProducerConfig() = default;
+  ~KafkaProducerConfig();
 
-  std::unique_ptr<RdKafka::Conf> ConsumeConfig();
+  RdKafka::Conf* ConsumeConfig();
   const std::string& GetServerAddress() const;
   const uint16_t& GetPort() const;
   const std::string& GetTopic() const;
 
  private:
+  void Cleanup();
   void DetermineSettings(const json& inConfig);
   void InitialiseConfig();
   void SetServerAddress();
   void SetDeliveryReportCallback();
 
-  std::unique_ptr<RdKafka::Conf> fKafkaConfig;
+  RdKafka::Conf* fKafkaConfig;
   std::shared_ptr<RdKafka::DeliveryReportCb> fDeliveryReportCallback;
   std::string fServerAddress;
   uint16_t fPort;

@@ -1,6 +1,6 @@
 {
   "kafka": {
-    "serverAddress": "127.0.0.1:9002",
+    "serverAddress": "localhost:9092",
     "port": 9002,
     "topic": "my_topic"
   }
